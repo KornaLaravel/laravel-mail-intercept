@@ -1,21 +1,19 @@
 on: push
+
 name: CI
 
 jobs:
   pest:
     runs-on: ubuntu-24.04
+
     timeout-minutes: 5
 
     strategy:
       fail-fast: true
       matrix:
-        php: [ 8.1, 8.2, 8.3, 8.4 ]
-        laravel: [ 10.*, 11.*, 12.* ]
+        php: [8.2, 8.3, 8.4]
+        laravel: ['10.*', '11.*', '12.*', '13.*']
         include:
-          - php: 8.1
-            laravel: 10.*
-            pest: 2.*
-            testbench: 8.*
           - php: 8.2
             laravel: 10.*
             pest: 2.*
@@ -52,11 +50,17 @@ jobs:
             laravel: 12.*
             pest: 3.*
             testbench: 10.*
+          - php: 8.3
+            laravel: 13.*
+            pest: 4.*
+            testbench: 11.*
+          - php: 8.4
+            laravel: 13.*
+            pest: 4.*
+            testbench: 11.*
         exclude:
-          - php: 8.1
-            laravel: 11.*
-          - php: 8.1
-            laravel: 12.*
+          - php: 8.2
+            laravel: 13.*
 
     name: Mail Intercept Tests - PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }}
 
@@ -83,6 +87,7 @@ jobs:
           composer require "laravel/framework:${{ matrix.laravel }}" --no-interaction --no-update
           composer require "orchestra/testbench:${{ matrix.testbench }}" --no-interaction --no-update
           composer require "pestphp/pest:${{ matrix.pest }}" "pestphp/pest-plugin-laravel:${{ matrix.pest }}" "pestphp/pest-plugin-type-coverage:${{ matrix.pest }}" --no-interaction --no-update
+          if [ -n "${{ matrix.paratest }}" ]; then composer require --dev "brianium/paratest:${{ matrix.paratest }}" --no-interaction --no-update; fi
           composer update --prefer-dist --no-interaction
           composer dump
 
@@ -91,9 +96,11 @@ jobs:
 
   pint:
     runs-on: ubuntu-24.04
+
     timeout-minutes: 5
 
     name: Pint Style Check
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
